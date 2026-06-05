@@ -8,3 +8,6 @@ TARGET = TPlab2
 
 SOURCES += \
     source/main.cpp
+
+HEADERS += \
+    source/Unit.h
