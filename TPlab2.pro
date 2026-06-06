@@ -7,7 +7,9 @@ TEMPLATE = app
 TARGET = TPlab2
 
 SOURCES += \
-    source/main.cpp
+    source/main.cpp \
+    source/ClassUnit.cpp
 
 HEADERS += \
-    source/Unit.h
+    source/Unit.h \
+    source/ClassUnit.h
