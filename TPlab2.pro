@@ -9,9 +9,11 @@ TARGET = TPlab2
 SOURCES += \
     source/main.cpp \
     source/ClassUnit.cpp \
-    source/MethodUnit.cpp
+    source/MethodUnit.cpp \
+    source/PrintOperatorUnit.cpp
 
 HEADERS += \
     source/Unit.h \
     source/ClassUnit.h \
-    source/MethodUnit.h
+    source/MethodUnit.h \
+    source/PrintOperatorUnit.h
