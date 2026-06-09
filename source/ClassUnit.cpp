@@ -12,7 +12,7 @@ ClassUnit::ClassUnit(const std::string& name)
 }
 
 void ClassUnit::add(const std::shared_ptr<Unit>& unit, Flags flags) {
-    int accessModifier = PRIVATE;
+    int accessModifier = AccessModifier::PRIVATE;
 
     if (flags < ACCESS_MODIFIERS.size()) {
         accessModifier = flags;

@@ -1,5 +1,6 @@
 #include "ClassUnit.h"
 #include "MethodUnit.h"
+#include "Modifiers.h"
 #include "PrintOperatorUnit.h"
 
 #include <iostream>
@@ -11,32 +12,36 @@ std::string generateProgram() {
 
     myClass.add(
         std::make_shared<MethodUnit>("testFunc1", "void", 0),
-        ClassUnit::PUBLIC
+        AccessModifier::PUBLIC
     );
 
     myClass.add(
-        std::make_shared<MethodUnit>("testFunc2", "void", MethodUnit::STATIC),
-        ClassUnit::PRIVATE
+        std::make_shared<MethodUnit>(
+            "testFunc2",
+            "void",
+            MethodModifier::STATIC
+        ),
+        AccessModifier::PRIVATE
     );
 
     myClass.add(
         std::make_shared<MethodUnit>(
             "testFunc3",
             "void",
-            MethodUnit::VIRTUAL | MethodUnit::CONST
+            MethodModifier::VIRTUAL | MethodModifier::CONST
         ),
-        ClassUnit::PUBLIC
+        AccessModifier::PUBLIC
     );
 
     auto method = std::make_shared<MethodUnit>(
         "testFunc4",
         "void",
-        MethodUnit::STATIC
+        MethodModifier::STATIC
     );
 
     method->add(std::make_shared<PrintOperatorUnit>("Hello, world!\\n"));
 
-    myClass.add(method, ClassUnit::PROTECTED);
+    myClass.add(method, AccessModifier::PROTECTED);
 
     return myClass.compile();
 }

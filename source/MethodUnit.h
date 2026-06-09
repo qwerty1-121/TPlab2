@@ -1,6 +1,7 @@
 #ifndef METHODUNIT_H
 #define METHODUNIT_H
 
+#include "Modifiers.h"
 #include "Unit.h"
 
 #include <memory>
@@ -8,13 +9,6 @@
 #include <vector>
 
 class MethodUnit : public Unit {
-public:
-    enum Modifier {
-        STATIC = 1,
-        CONST = 1 << 1,
-        VIRTUAL = 1 << 2
-    };
-
 public:
     MethodUnit(
         const std::string& name,

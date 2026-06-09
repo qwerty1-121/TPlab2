@@ -17,16 +17,16 @@ void MethodUnit::add(const std::shared_ptr<Unit>& unit, Flags) {
 std::string MethodUnit::compile(unsigned int level) const {
     std::string result = generateShift(level);
 
-    if (m_flags & STATIC) {
+    if (m_flags & MethodModifier::STATIC) {
         result += "static ";
-    } else if (m_flags & VIRTUAL) {
+    } else if (m_flags & MethodModifier::VIRTUAL) {
         result += "virtual ";
     }
 
     result += m_returnType + " ";
     result += m_name + "()";
 
-    if (m_flags & CONST) {
+    if (m_flags & MethodModifier::CONST) {
         result += " const";
     }
 

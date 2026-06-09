@@ -1,6 +1,7 @@
 #ifndef CLASSUNIT_H
 #define CLASSUNIT_H
 
+#include "Modifiers.h"
 #include "Unit.h"
 
 #include <memory>
@@ -9,12 +10,6 @@
 
 class ClassUnit : public Unit {
 public:
-    enum AccessModifier {
-        PUBLIC,
-        PROTECTED,
-        PRIVATE
-    };
-
     static const std::vector<std::string> ACCESS_MODIFIERS;
 
 public:
