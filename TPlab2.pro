@@ -15,6 +15,7 @@ SOURCES += \
 HEADERS += \
     source/Unit.h \
     source/Modifiers.h \
+    source/CodeFactory.h \
     source/ClassUnit.h \
     source/MethodUnit.h \
     source/PrintOperatorUnit.h
