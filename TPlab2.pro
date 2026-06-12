@@ -10,7 +10,8 @@ SOURCES += \
     source/main.cpp \
     source/ClassUnit.cpp \
     source/MethodUnit.cpp \
-    source/PrintOperatorUnit.cpp
+    source/PrintOperatorUnit.cpp \
+    source/CppCodeFactory.cpp
 
 HEADERS += \
     source/Unit.h \
@@ -18,4 +19,5 @@ HEADERS += \
     source/CodeFactory.h \
     source/ClassUnit.h \
     source/MethodUnit.h \
-    source/PrintOperatorUnit.h
+    source/PrintOperatorUnit.h \
+    source/CppCodeFactory.h
