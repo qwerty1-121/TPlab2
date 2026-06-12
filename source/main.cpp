@@ -1,22 +1,21 @@
-#include "ClassUnit.h"
-#include "MethodUnit.h"
+#include "CodeFactory.h"
+#include "CppCodeFactory.h"
 #include "Modifiers.h"
-#include "PrintOperatorUnit.h"
 
 #include <iostream>
 #include <memory>
 #include <string>
 
-std::string generateProgram() {
-    ClassUnit myClass("MyClass");
+std::string generateProgram(const CodeFactory& factory) {
+    auto myClass = factory.createClass("MyClass");
 
-    myClass.add(
-        std::make_shared<MethodUnit>("testFunc1", "void", 0),
+    myClass->add(
+        factory.createMethod("testFunc1", "void", 0),
         AccessModifier::PUBLIC
     );
 
-    myClass.add(
-        std::make_shared<MethodUnit>(
+    myClass->add(
+        factory.createMethod(
             "testFunc2",
             "void",
             MethodModifier::STATIC
@@ -24,8 +23,8 @@ std::string generateProgram() {
         AccessModifier::PRIVATE
     );
 
-    myClass.add(
-        std::make_shared<MethodUnit>(
+    myClass->add(
+        factory.createMethod(
             "testFunc3",
             "void",
             MethodModifier::VIRTUAL | MethodModifier::CONST
@@ -33,21 +32,26 @@ std::string generateProgram() {
         AccessModifier::PUBLIC
     );
 
-    auto method = std::make_shared<MethodUnit>(
+    auto method = factory.createMethod(
         "testFunc4",
         "void",
         MethodModifier::STATIC
     );
 
-    method->add(std::make_shared<PrintOperatorUnit>("Hello, world!\\n"));
+    method->add(
+        factory.createPrintOperator("Hello, world!\\n"),
+        0
+    );
 
-    myClass.add(method, AccessModifier::PROTECTED);
+    myClass->add(method, AccessModifier::PROTECTED);
 
-    return myClass.compile();
+    return myClass->compile();
 }
 
 int main() {
-    std::cout << generateProgram() << std::endl;
+    CppCodeFactory factory;
+
+    std::cout << generateProgram(factory) << std::endl;
 
     return 0;
 }
