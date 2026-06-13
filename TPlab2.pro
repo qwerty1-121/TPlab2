@@ -12,7 +12,8 @@ SOURCES += \
     source/MethodUnit.cpp \
     source/PrintOperatorUnit.cpp \
     source/CppCodeFactory.cpp \
-    source/CSharpPrintOperatorUnit.cpp
+    source/CSharpPrintOperatorUnit.cpp \
+    source/CSharpMethodUnit.cpp
 
 HEADERS += \
     source/Unit.h \
@@ -22,4 +23,5 @@ HEADERS += \
     source/MethodUnit.h \
     source/PrintOperatorUnit.h \
     source/CppCodeFactory.h \
-    source/CSharpPrintOperatorUnit.h
+    source/CSharpPrintOperatorUnit.h \
+    source/CSharpMethodUnit.h
