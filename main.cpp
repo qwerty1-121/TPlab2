@@ -4,6 +4,7 @@
 #include <string>
 #include <vector>
 
+
 class Unit {
 public:
     using Flags = unsigned int;
@@ -41,12 +42,16 @@ public:
 
     static const std::vector<std::string> ACCESS_MODIFIERS;
 
+    using Fields = std::vector<std::shared_ptr<Unit>>;
+
 public:
-    explicit ClassUnit(const std::string& name) : m_name(name) {
+    explicit ClassUnit(const std::string& name)
+        : m_name(name)
+    {
         m_fields.resize(ACCESS_MODIFIERS.size());
     }
 
-    void add(const std::shared_ptr<Unit>& unit, Flags flags) {
+    void add(const std::shared_ptr<Unit>& unit, Flags flags) override {
         int accessModifier = PRIVATE;
 
         if (flags < ACCESS_MODIFIERS.size()) {
@@ -56,33 +61,21 @@ public:
         m_fields[accessModifier].push_back(unit);
     }
 
-    std::string compile(unsigned int level = 0) const {
-        std::string result =
-            generateShift(level) + "class " + m_name + " {\n";
+protected:
+    const std::string& getName() const {
+        return m_name;
+    }
 
-        for (size_t i = 0; i < ACCESS_MODIFIERS.size(); ++i) {
-            if (m_fields[i].empty()) {
-                continue;
-            }
-
-            result += ACCESS_MODIFIERS[i] + ":\n";
-
-            for (const auto& f : m_fields[i]) {
-                result += f->compile(level + 1);
-            }
-
-            result += "\n";
+    const Fields& getFields(unsigned int accessGroup) const {
+        if (ACCESS_MODIFIERS.size() <= accessGroup) {
+            throw std::out_of_range("Invalid access group index");
         }
 
-        result += generateShift(level) + "};\n";
-
-        return result;
+        return m_fields[accessGroup];
     }
 
 private:
     std::string m_name;
-
-    using Fields = std::vector<std::shared_ptr<Unit>>;
     std::vector<Fields> m_fields;
 };
 
@@ -108,38 +101,31 @@ public:
                Flags flags)
         : m_name(name),
         m_returnType(returnType),
-        m_flags(flags) {
+        m_flags(flags)
+    {
     }
 
-    void add(const std::shared_ptr<Unit>& unit, Flags /* flags */ = 0) {
+    void add(const std::shared_ptr<Unit>& unit,
+             Flags /* flags */ = 0) override
+    {
         m_body.push_back(unit);
     }
 
-    std::string compile(unsigned int level = 0) const {
-        std::string result = generateShift(level);
+protected:
+    const std::string& getName() const {
+        return m_name;
+    }
 
-        if (m_flags & STATIC) {
-            result += "static ";
-        } else if (m_flags & VIRTUAL) {
-            result += "virtual ";
-        }
+    const std::string& getReturnType() const {
+        return m_returnType;
+    }
 
-        result += m_returnType + " ";
-        result += m_name + "()";
+    Flags getFlags() const {
+        return m_flags;
+    }
 
-        if (m_flags & CONST) {
-            result += " const";
-        }
-
-        result += " {\n";
-
-        for (const auto& b : m_body) {
-            result += b->compile(level + 1);
-        }
-
-        result += generateShift(level) + "}\n";
-
-        return result;
+    const std::vector<std::shared_ptr<Unit>>& getBody() const {
+        return m_body;
     }
 
 private:
@@ -152,12 +138,14 @@ private:
 
 class PrintOperatorUnit : public Unit {
 public:
-    explicit PrintOperatorUnit(const std::string& text) : m_text(text) {
+    explicit PrintOperatorUnit(const std::string& text)
+        : m_text(text)
+    {
     }
 
-    std::string compile(unsigned int level = 0) const {
-        return generateShift(level)
-        + "printf( \"" + m_text + "\" );\n";
+protected:
+    const std::string& getText() const {
+        return m_text;
     }
 
 private:
@@ -165,16 +153,154 @@ private:
 };
 
 
-std::string generateProgram() {
-    ClassUnit myClass("MyClass");
+class LangFactory {
+public:
+    virtual ~LangFactory() = default;
 
-    myClass.add(
-        std::make_shared<MethodUnit>("testFunc1", "void", 0),
+    virtual std::shared_ptr<ClassUnit> createClass(
+        const std::string& name
+        ) = 0;
+
+    virtual std::shared_ptr<MethodUnit> createMethod(
+        const std::string& name,
+        const std::string& returnType,
+        Unit::Flags flags
+        ) = 0;
+
+    virtual std::shared_ptr<PrintOperatorUnit> createPrintOperator(
+        const std::string& text
+        ) = 0;
+};
+
+
+class CppClass : public ClassUnit {
+public:
+    explicit CppClass(const std::string& name)
+        : ClassUnit(name)
+    {
+    }
+
+    std::string compile(unsigned int level = 0) const override {
+        std::string result =
+            generateShift(level) + "class " + getName() + " {\n";
+
+        for (size_t i = 0; i < ACCESS_MODIFIERS.size(); ++i) {
+            if (getFields(i).empty()) {
+                continue;
+            }
+
+            result += ACCESS_MODIFIERS[i] + ":\n";
+
+            for (const auto& f : getFields(i)) {
+                result += f->compile(level + 1);
+            }
+
+            result += "\n";
+        }
+
+        result += generateShift(level) + "};\n";
+
+        return result;
+    }
+};
+
+
+class CppMethod : public MethodUnit {
+public:
+    CppMethod(const std::string& name,
+              const std::string& returnType,
+              Flags flags)
+        : MethodUnit(name, returnType, flags)
+    {
+    }
+
+    std::string compile(unsigned int level = 0) const override {
+        std::string result = generateShift(level);
+
+        if (getFlags() & STATIC) {
+            result += "static ";
+        } else if (getFlags() & VIRTUAL) {
+            result += "virtual ";
+        }
+
+        result += getReturnType() + " ";
+        result += getName() + "()";
+
+        if (getFlags() & CONST) {
+            result += " const";
+        }
+
+        result += " {\n";
+
+        for (const auto& b : getBody()) {
+            result += b->compile(level + 1);
+        }
+
+        result += generateShift(level) + "}\n";
+
+        return result;
+    }
+};
+
+
+class CppPrintOperator : public PrintOperatorUnit {
+public:
+    explicit CppPrintOperator(const std::string& text)
+        : PrintOperatorUnit(text)
+    {
+    }
+
+    std::string compile(unsigned int level = 0) const override {
+        return generateShift(level)
+        + "printf( \"" + getText() + "\" );\n";
+    }
+};
+
+
+class CppFactory : public LangFactory {
+public:
+    std::shared_ptr<ClassUnit> createClass(
+        const std::string& name
+        ) override {
+        return std::make_shared<CppClass>(name);
+    }
+
+    std::shared_ptr<MethodUnit> createMethod(
+        const std::string& name,
+        const std::string& returnType,
+        Unit::Flags flags
+        ) override {
+        return std::make_shared<CppMethod>(
+            name,
+            returnType,
+            flags
+            );
+    }
+
+    std::shared_ptr<PrintOperatorUnit> createPrintOperator(
+        const std::string& text
+        ) override {
+        return std::make_shared<CppPrintOperator>(text);
+    }
+};
+
+
+std::string generateProgram(
+    const std::shared_ptr<LangFactory>& factory
+    ) {
+    auto myClass = factory->createClass("MyClass");
+
+    myClass->add(
+        factory->createMethod(
+            "testFunc1",
+            "void",
+            0
+            ),
         ClassUnit::PUBLIC
         );
 
-    myClass.add(
-        std::make_shared<MethodUnit>(
+    myClass->add(
+        factory->createMethod(
             "testFunc2",
             "void",
             MethodUnit::STATIC
@@ -182,8 +308,8 @@ std::string generateProgram() {
         ClassUnit::PRIVATE
         );
 
-    myClass.add(
-        std::make_shared<MethodUnit>(
+    myClass->add(
+        factory->createMethod(
             "testFunc3",
             "void",
             MethodUnit::VIRTUAL | MethodUnit::CONST
@@ -191,26 +317,31 @@ std::string generateProgram() {
         ClassUnit::PUBLIC
         );
 
-    auto method = std::make_shared<MethodUnit>(
+    auto method = factory->createMethod(
         "testFunc4",
         "void",
         MethodUnit::STATIC
         );
 
     method->add(
-        std::make_shared<PrintOperatorUnit>(
+        factory->createPrintOperator(
             R"(Hello, world!\n)"
             )
         );
 
-    myClass.add(method, ClassUnit::PROTECTED);
+    myClass->add(
+        method,
+        ClassUnit::PROTECTED
+        );
 
-    return myClass.compile();
+    return myClass->compile();
 }
 
 
 int main() {
-    std::cout << generateProgram() << std::endl;
+    std::cout
+        << generateProgram(std::make_shared<CppFactory>())
+        << std::endl;
 
     return 0;
 }
