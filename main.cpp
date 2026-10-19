@@ -284,6 +284,117 @@ public:
     }
 };
 
+class CSharpClass : public ClassUnit {
+public:
+    explicit CSharpClass(const std::string& name)
+        : ClassUnit(name)
+    {
+    }
+
+    std::string compile(unsigned int level = 0) const override {
+        std::string result =
+            generateShift(level) + "class " + getName() + "\n";
+
+        result += generateShift(level) + "{\n";
+
+        for (size_t i = 0; i < ACCESS_MODIFIERS.size(); ++i) {
+            for (const auto& field : getFields(i)) {
+                std::string fieldCode = field->compile(level + 1);
+
+                const std::string shift = generateShift(level + 1);
+
+                fieldCode.insert(
+                    shift.size(),
+                    ACCESS_MODIFIERS[i] + " "
+                    );
+
+                result += fieldCode;
+                result += "\n";
+            }
+        }
+
+        result += generateShift(level) + "}\n";
+
+        return result;
+    }
+};
+
+
+class CSharpMethod : public MethodUnit {
+public:
+    CSharpMethod(const std::string& name,
+                 const std::string& returnType,
+                 Flags flags)
+        : MethodUnit(name, returnType, flags)
+    {
+    }
+
+    std::string compile(unsigned int level = 0) const override {
+        std::string result = generateShift(level);
+
+        if (getFlags() & STATIC) {
+            result += "static ";
+        } else if (getFlags() & VIRTUAL) {
+            result += "virtual ";
+        }
+
+        result += getReturnType() + " ";
+        result += getName() + "()";
+
+        result += "\n";
+        result += generateShift(level) + "{\n";
+
+        for (const auto& bodyElement : getBody()) {
+            result += bodyElement->compile(level + 1);
+        }
+
+        result += generateShift(level) + "}\n";
+
+        return result;
+    }
+};
+
+
+class CSharpPrintOperator : public PrintOperatorUnit {
+public:
+    explicit CSharpPrintOperator(const std::string& text)
+        : PrintOperatorUnit(text)
+    {
+    }
+
+    std::string compile(unsigned int level = 0) const override {
+        return generateShift(level)
+        + "System.Console.WriteLine( \"" + getText() + "\" );\n";
+    }
+};
+
+
+class CSharpFactory : public LangFactory {
+public:
+    std::shared_ptr<ClassUnit> createClass(
+        const std::string& name
+        ) override {
+        return std::make_shared<CSharpClass>(name);
+    }
+
+    std::shared_ptr<MethodUnit> createMethod(
+        const std::string& name,
+        const std::string& returnType,
+        Unit::Flags flags
+        ) override {
+        return std::make_shared<CSharpMethod>(
+            name,
+            returnType,
+            flags
+            );
+    }
+
+    std::shared_ptr<PrintOperatorUnit> createPrintOperator(
+        const std::string& text
+        ) override {
+        return std::make_shared<CSharpPrintOperator>(text);
+    }
+};
 
 std::string generateProgram(
     const std::shared_ptr<LangFactory>& factory
@@ -340,7 +451,7 @@ std::string generateProgram(
 
 int main() {
     std::cout
-        << generateProgram(std::make_shared<CppFactory>())
+        << generateProgram(std::make_shared<CSharpFactory>())
         << std::endl;
 
     return 0;
